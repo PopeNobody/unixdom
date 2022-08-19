@@ -11,54 +11,75 @@
 #include <unistd.h>
 #include "connection.hh"
 
-int main(int argc, char *argv[])
-{
-  struct sockaddr_un addr;
-  int i;
-  int ret;
-  int data_socket;
+int connection_socket;
+int data_socket;
+struct sockaddr_un addr;
+int ret;
 
-  /* Create local socket. */
+void fork_and_dup() {
+    if(fork()){
+      //shutdown(data_socket,SHUT_RD);
+      dup2(data_socket,0);
+      close(data_socket);
+    } else {
+      //shutdown(data_socket,SHUT_WR);
+      dup2(data_socket,1);
+      close(data_socket);
+    };
+};
+void bind_and_accept() {
+  int ret = bind(connection_socket, (const struct sockaddr *) &addr,
+      sizeof(struct sockaddr_un));
+  if (ret == -1) {
+    perror("bind");
+    exit(EXIT_FAILURE);
+  }
 
-  data_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+  ret = listen(connection_socket, 20);
+  if (ret == -1) {
+    perror("listen");
+    exit(EXIT_FAILURE);
+  }
+  data_socket = accept(connection_socket, NULL, NULL);
+
+
+  dprintf(2,"accept\n");
   if (data_socket == -1) {
+    perror("accept");
+    exit(EXIT_FAILURE);
+  }
+  close(connection_socket);
+};
+void open_socket() {
+  connection_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (connection_socket == -1) {
     perror("socket");
     exit(EXIT_FAILURE);
   }
-  /*
-   * For portability clear the whole structure, since some
-   * implementations have additional (nonstandard) fields in
-   * the structure.
-   */
-
   memset(&addr, 0, sizeof(struct sockaddr_un));
-
-  /* Connect socket to socket address */
-
   addr.sun_family = AF_UNIX;
   strncpy(addr.sun_path, SOCKET_NAME, sizeof(addr.sun_path) - 1);
-
+}
+void hook_up() {
+  data_socket=connection_socket;
+  connection_socket=-1;
   ret = connect (data_socket, (const struct sockaddr *) &addr,
       sizeof(struct sockaddr_un));
   if (ret == -1) {
-    fprintf(stderr, "The server is down.\n");
+    perror("connect");
     exit(EXIT_FAILURE);
   }
+}
+int main(int argc, char *argv[])
+{
+  open_socket();
+  hook_up();
+  unlink(SOCKET_NAME);
+  fork_and_dup();
 
-
-  if(fork()){
-    dup2(data_socket,0);
-    close(data_socket);
-  } else {
-    dup2(data_socket,1);
-    close(data_socket);
-  };
-  
   char buffer[2];
-  for(;;){
-    while(read(0,buffer,1))
-      write(1,buffer,1);
-  }
+  while(read(0,buffer,1))
+    write(1,buffer,1);
   /* Unlink the socket. */
 
   unlink(SOCKET_NAME);
