@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include "connection.h"
+#include "connection.hh"
 
 int main(int argc, char *argv[])
 {
