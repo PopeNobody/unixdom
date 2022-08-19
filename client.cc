@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  close(data_socket);
 
   if(fork()){
     dup2(data_socket,0);
