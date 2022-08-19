@@ -17,14 +17,16 @@ int main(int argc, char *argv[])
   int i;
   int ret;
   int data_socket;
+  char buffer[BUFFER_SIZE];
 
   /* Create local socket. */
 
-  data_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+  data_socket = socket(AF_UNIX, SOCK_SEQPACKET, 0);
   if (data_socket == -1) {
     perror("socket");
     exit(EXIT_FAILURE);
   }
+
   /*
    * For portability clear the whole structure, since some
    * implementations have additional (nonstandard) fields in
@@ -45,27 +47,42 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  close(data_socket);
+  /* Send arguments. */
 
-  if(fork()){
-    dup2(data_socket,0);
-    close(data_socket);
-    shutdown(0, SHUT_WR );
-  } else {
-    dup2(data_socket,1);
-    close(data_socket);
-    shutdown(1, SHUT_RD );
-  };
-  
-  char buffer[2];
-  for(;;){
-    while(read(0,buffer,1))
-      if(!write(1,buffer,1))
-        write(2,".",1);     
+  for (i = 1; i < argc; ++i) {
+    ret = write(data_socket, argv[i], strlen(argv[i]) + 1);
+    if (ret == -1) {
+      perror("write");
+      break;
+    }
   }
-  /* Unlink the socket. */
 
-  unlink(SOCKET_NAME);
+  /* Request result. */
+
+  strcpy (buffer, "END");
+  ret = write(data_socket, buffer, strlen(buffer) + 1);
+  if (ret == -1) {
+    perror("write");
+    exit(EXIT_FAILURE);
+  }
+
+  /* Receive result. */
+
+  ret = read(data_socket, buffer, BUFFER_SIZE);
+  if (ret == -1) {
+    perror("read");
+    exit(EXIT_FAILURE);
+  }
+
+  /* Ensure buffer is 0-terminated. */
+
+  buffer[BUFFER_SIZE - 1] = 0;
+
+  printf("Result = %s\n", buffer);
+
+  /* Close socket. */
+
+  close(data_socket);
 
   exit(EXIT_SUCCESS);
 }
