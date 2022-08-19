@@ -70,6 +70,7 @@ void hook_up() {
     exit(EXIT_FAILURE);
   }
 }
+
 int main(int argc, char *argv[])
 {
   open_socket();
