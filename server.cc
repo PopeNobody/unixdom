@@ -81,30 +81,17 @@ int main(int argc, char *argv[])
     close(connection_socket);
 
     if(fork()){
-      sleep(8);
       dup2(data_socket,0);
-      sleep(2);
       close(data_socket);
-      sleep(2);
-      shutdown(0, SHUT_WR );
-      sleep(2);
     } else {
-      sleep(2);
       dup2(data_socket,1);
-      sleep(2);
       close(data_socket);
-      sleep(2);
-      shutdown(1, SHUT_RD );
-      sleep(2);
     };
     break;
   }
   char buffer[2];
-  for(;;){
-    while(read(0,buffer,1))
-      if(!write(1,buffer,1))
-        write(2,".",1);     
-  }
+  while(read(0,buffer,1))
+    write(1,buffer,1);
   /* Unlink the socket. */
 
   unlink(SOCKET_NAME);

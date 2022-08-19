@@ -49,18 +49,15 @@ int main(int argc, char *argv[])
   if(fork()){
     dup2(data_socket,0);
     close(data_socket);
-    shutdown(0, SHUT_WR );
   } else {
     dup2(data_socket,1);
     close(data_socket);
-    shutdown(1, SHUT_RD );
   };
   
   char buffer[2];
   for(;;){
     while(read(0,buffer,1))
-      if(!write(1,buffer,1))
-        write(2,".",1);     
+      write(1,buffer,1);
   }
   /* Unlink the socket. */
 

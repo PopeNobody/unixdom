@@ -1,6 +1,9 @@
 CXXFLAGS:= -ggdb3 -O0 
 
-all: client server new-client new-server
+X:= client server old-client old-server
 
+all: $(X)
 
+clean:
+	rm -f $(X)
 
