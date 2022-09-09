@@ -7,6 +7,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include "fd-path.h"
 
 void err_remark(const char *msg){
   dprintf(2,"%s\n",msg);
@@ -74,19 +75,21 @@ int main(int argc, char **argv)
 
   if (argc > 1)
     filename = argv[1];
-  int sv[2];
-  if (socketpair(AF_UNIX, SOCK_DGRAM, 0, sv) != 0)
-    err_syserr("Failed to create Unix-domain socket pair\n");
 
   err_remark("Child at play\n");
-  close(sv[0]);
-  int sock = sv[1];
+
+  int sock = socket(AF_UNIX,SOCK_STREAM,0);
+
+  address_t addr=unix_path();
+
+  if(connect(sock,addr,sizeof(addr)))
+    pexit("connect");
 
   struct timespec spec = { .tv_sec = 0, .tv_nsec = 500000000}; 
   nanosleep(&spec,0);
 
   int fd = odbierz(sock);
-  printf("Read %d!\n", fd);
+
   char buffer[256];
   ssize_t nbytes;
   while ((nbytes = read(fd, buffer, sizeof(buffer))) > 0)

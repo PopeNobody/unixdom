@@ -8,9 +8,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-#include <string>
-
-using std::string;
+#include "fd-path.h"
 
 void err_remark(const char *msg){
   dprintf(2,"%s\n",msg);
@@ -45,41 +43,21 @@ void wyslij(int socket, int fd)  // send fd by socket
 }
 
 static
-int odbierz(int socket)  // receive fd from socket
-{
-    struct msghdr msg = {0};
+void wait_msg(int socket) {
+  struct msghdr msg = {0};
 
-    char m_buffer[256];
-    struct iovec io = { .iov_base = m_buffer, .iov_len = sizeof(m_buffer) };
-    msg.msg_iov = &io;
-    msg.msg_iovlen = 1;
+  char m_buffer[256];
+  struct iovec io = { .iov_base = m_buffer, .iov_len = sizeof(m_buffer) };
+  msg.msg_iov = &io;
+  msg.msg_iovlen = 1;
 
-    char c_buffer[256];
-    msg.msg_control = c_buffer;
-    msg.msg_controllen = sizeof(c_buffer);
+  char c_buffer[256];
+  msg.msg_control = c_buffer;
+  msg.msg_controllen = sizeof(c_buffer);
 
-    if (recvmsg(socket, &msg, 0) < 0)
-        err_syserr("Failed to receive message\n");
-
-    struct cmsghdr * cmsg = CMSG_FIRSTHDR(&msg);
-
-    unsigned char * data = CMSG_DATA(cmsg);
-
-    dprintf(2,"About to extract fd\n");
-    int fd = *((int*) data);
-    dprintf(2,"Extracted fd %d\n", fd);
-
-    return fd;
-}
-
-union address_t {
-  sockaddr_un sun;
-  sockaddr    sad;
-  operator sockaddr*() {
-    return &sad;
-  };
+  if (recvmsg(socket, &msg, 0) < 0)
+    err_syserr("Failed to receive message\n");
 };
-
 int main(int argc, char **argv)
 {
   const char *filename = "./z7.c";
@@ -87,37 +65,29 @@ int main(int argc, char **argv)
   if (argc > 1)
     filename = argv[1];
 
-  string path=getenv("HOME");
-  path+="/";
-  path+="fdpass.sock";
+  int fd = xopen(filename, O_RDONLY);
+
   int s = socket(AF_UNIX, SOCK_STREAM, 0);
-  address_t sun;
-  sun.sun.sun_family=AF_UNIX;
-  strcpy(sun.sun.sun_path,path.c_str());
+  address_t sun = unix_path();
 
   unlink(sun.sun.sun_path); 
-  err_remark(sun.sun.sun_path); 
-  if(bind(s,sun,sizeof(sun))) {
-    perror("bind");
-    exit(1);
-  };
-  listen(s,5);
-  address_t peer;
-  socklen_t size=sizeof(peer);
-  int sock = accept(s, peer, &size);
-  if(sock<0){
-    perror("accept");
-    exit(2);
-  };
-//     int fd = open(filename, O_RDONLY);
-//     if (fd < 0)
-//       dprintf(2,"Failed to open file %s for reading\n", filename);
-//   
-//     wyslij(sock, fd);
-//   
-//     close(fd);
-//     struct timespec spec = { .tv_sec = 1, .tv_nsec = 500000000};
-//     nanosleep(&spec , 0);
-//     err_remark("Parent exits\n");
+  
+  xbind(s,sun,sizeof(sun))
+
+  if(listen(s,1))
+    pexit("listen");
+  socklen_t size=sizeof(sun);
+  while(true){
+    int sock=xaccept(s,sun,&size);
+
+    dprintf(2,"got connection\n");
+
+    xlseek(fd,0,SEEK_SET);
+    wyslij(sock, fd);
+  }
+  close(fd);
+  struct timespec spec = { .tv_sec = 1, .tv_nsec = 500000000};
+  nanosleep(&spec , 0);
+  err_remark("Parent exits\n");
   return 0;
 }
