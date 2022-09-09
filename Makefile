@@ -9,3 +9,5 @@ all: $(X)
 clean:
 	rm -f $(X)
 
+fd-server fd-client: fd-path.o
+

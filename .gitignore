@@ -10,3 +10,5 @@ fd-client
 fd-serv
 fd-server
 output
+*.o
+tags
