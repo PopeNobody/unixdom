@@ -1,7 +1,8 @@
 CXXFLAGS:= -ggdb3 -O0 
+LDFLAGS:= -static
 
 X:= client server old-client old-server
-X+= fdpass
+X+= fd-server fd-client
 
 all: $(X)
 
