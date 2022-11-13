@@ -1,6 +1,7 @@
 /client
 errno.list.cc
 errno.list.hh
+!/hide
 fd-client
 fdpass
 fd-serv
@@ -14,3 +15,9 @@ output
 /server
 tags
 z7.c
+*.old
+*.i
+*.x
+*.a
+*.out
+errno
