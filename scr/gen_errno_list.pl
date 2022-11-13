@@ -3,37 +3,37 @@
 use strict;
 use warnings;
 use autodie qw(:all);
+use Data::Dumper;
 
 @ARGV=qw(errno.cc.i);
-my $f="errno.list.cc";
+my $f="tmp/errno.list.cc";
 open(STDIN,"</dev/null");
-open(STDOUT,">$f.new");
-print "#define error_msg(name,code)\n";
+open(STDERR,">$f.trash");
 
-while(<>){
-  last if /ERRNO_H\s*$/;
-};
-my %seen;
 my @errs;
-
+print STDERR "starting read\n";
 while(<>){
-  next if /^#define EXIT/;
-  next if /^#define EOF/;
-  next unless /^#define E/;
-  @_=split;
-  shift @_;
-  push(@errs,\@_);
+  print STDERR;
+  next unless s/^#define\s*//;
+  next unless m{^E};
+  next if m{^E(XIT|OF)};
+  next unless @_ =  m{^(E[A-Z0-9]+)\s+(\d+)};
+  push(@errs,[@_]);
+  print STDERR "found one\n";
 };
+print STDERR "finished read\n";
+mkdir("tmp") unless -d "tmp";
+open(STDOUT,">$f.new");
+print "#ifndef error_msg\n";
+print "#define error_msg(name,code)\n\n";
+print "#endif\n";
+print "\n\n";
+print STDERR "\n\n";
 for(@errs){
   @_=@{$_};
-  $_="error_msg($_[0],$_[1])\n";
-  print;
+  print "error_msg($_[0],$_[1])\n";
 };
-while(<>){
-};
-
 close(STDOUT);
-mkdir("tmp") unless -d "tmp";
-rename($f,"tmp/$f.old") if -e $f;
-rename("$f.new","$f");
-
+close(STDERR);
+system("mv $f $f.old") if -e $f;
+system("cp $f.new $f");

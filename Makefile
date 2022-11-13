@@ -22,7 +22,7 @@ all: $(ACT_X)
 
 LIST_XX:=$(ACT_X)
 
-LIST_CC:=$(filter-out $(IGN_X_CC),$(sort $(wildcard *.cc)))
+LIST_CC:=$(filter-out $(IGN_X_CC),$(sort $(wildcard *.cc) tmp/errno.list.cc))
 LIST_II:=$(filter-out $(IGN_X_II),$(patsubst %.cc,%.cc.i,$(LIST_CC)))
 LIST_OO:=$(filter-out $(IGN_X_OO),$(patsubst %.cc,%.cc.o,$(LIST_CC)))
 
@@ -47,9 +47,11 @@ $(LIST_II): %.cc.i: %.cc etc/cppflags
 
 tmp/all_deps.mk: scr/gen_dep_list.pl $(LIST_II)
 	vi_perl scr/gen_dep_list.pl
+	@grep . $@ /dev/null
 
-errno.list.cc: errno.cc.i scr/gen_errno_list.pl
+tmp/errno.list.cc: errno.cc.i scr/gen_errno_list.pl
 	vi_perl scr/gen_errno_list.pl
+	@grep . $@ /dev/null
 
 etc/cxxflags etc/cppflags etc/ld_flags:
 	mkdir $$(dirname $@) -p && touch $@
