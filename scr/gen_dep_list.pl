@@ -17,6 +17,7 @@ while(<>){
 };
 
 close(STDOUT);
-rename("$f","$f.old") if -e "$f";
+mkdir("tmp") unless -d "tmp";
+rename("$f","tmp/$f.old") if -e "$f";
 rename("$f.new","$f");
 
