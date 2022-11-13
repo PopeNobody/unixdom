@@ -49,11 +49,11 @@ $(LIST_II): %.cc.i: %.cc cppflags
 	test ! -e $@ || mv $@ $@.old
 	$(CXX) $(shell cat cppflags) -E $< -o $@ 
 
-all_deps.mk: $(LIST_II)
-	perl gen_dep_list.pl
+all_deps.mk: $(LIST_II) scr/gen_dep_list.pl
+	perl scr/gen_dep_list.pl
 
-errno.list.cc: errno.cc.i
-	perl gen_errno_list.pl
+errno.list.cc: errno.cc.i scr/gen_errno_list.pl
+	perl scr/gen_errno_list.pl
 
 
 cxxflags cppflags ld_flags:
