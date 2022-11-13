@@ -12,3 +12,5 @@ fd-server
 output
 *.o
 tags
+errno.list.cc
+errno.list.hh

@@ -9,9 +9,10 @@ my $f="all_deps.mk";
 
 open(STDOUT,">$f.new");
 
+my %seen;
 while(<>){
-  print;
   next unless s{^#\s+\d+\s+}{};
+  next if $seen{$_};
   print;
 };
 
