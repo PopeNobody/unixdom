@@ -21,3 +21,4 @@ z7.c
 *.a
 *.out
 errno
+tmp
