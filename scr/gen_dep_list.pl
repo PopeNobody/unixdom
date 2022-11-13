@@ -5,7 +5,7 @@ use warnings;
 use autodie qw(:all);
 
 @ARGV=glob("*.i");
-my $f="all_deps.mk";
+my $f="tmp/all_deps.mk";
 
 open(STDOUT,">$f.new");
 
@@ -18,6 +18,6 @@ while(<>){
 
 close(STDOUT);
 mkdir("tmp") unless -d "tmp";
-rename("$f","tmp/$f.old") if -e "$f";
+rename("$f","$f.old") if -e "$f";
 rename("$f.new","$f");
 

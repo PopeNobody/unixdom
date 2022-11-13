@@ -4,7 +4,7 @@ MAKEFLAGS:= -rR
 CXX:=g++
 AR:=ar
 
-include /dev/null #$(wildcard all_deps.mk)
+include /dev/null #$(wildcard tmp/all_deps.mk)
 
 
 ALL_X:= $(ACT_X)
@@ -36,28 +36,28 @@ $(LIST_AR): $(LIST_AR_OO)
 
 $(LIST_II): $(wildcard *.hh)
 
-$(LIST_XX): %: %.cc.o  ld_flags $(LIST_AR)
-	$(CXX)    $< -o $@ $(shell cat ld_flags)   
+$(LIST_XX): %: %.cc.o  etc/ld_flags $(LIST_AR)
+	$(CXX)    $< -o $@ $(shell cat etc/ld_flags)   
 
-$(LIST_OO): %.cc.o: %.cc.i   cxxflags all_deps.mk
-	$(CXX) -c $< -o $@ $(shell cat cxxflags)
+$(LIST_OO): %.cc.o: %.cc.i   etc/cxxflags tmp/all_deps.mk
+	$(CXX) -c $< -o $@ $(shell cat etc/cxxflags)
 
-$(LIST_II): %.cc.i: %.cc cppflags
-	$(CXX)  -E $< -o $@  $(shell cat cppflags)
+$(LIST_II): %.cc.i: %.cc etc/cppflags
+	$(CXX)  -E $< -o $@  $(shell cat etc/cppflags)
 
-all_deps.mk: scr/gen_dep_list.pl $(LIST_II)
+tmp/all_deps.mk: scr/gen_dep_list.pl $(LIST_II)
 	vi_perl scr/gen_dep_list.pl
 
 errno.list.cc: errno.cc.i scr/gen_errno_list.pl
 	vi_perl scr/gen_errno_list.pl
 
-cxxflags cppflags ld_flags:
-	touch $@
+etc/cxxflags etc/cppflags etc/ld_flags:
+	mkdir $$(dirname $@) -p && touch $@
 
 .PRECIOUS: $(LIST_CC) $(LIST_II) $(LIST_OO) $(LIST_XX)
 
 clean:
-	rm -f $(ACT_X)
+	rm -f $(ACT_X) $(LIST_II) $(LIST_OO) $(LIST_XX) -r tmp
 
 fd-server fd-client: fd-path.o
 
