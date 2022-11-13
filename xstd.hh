@@ -6,8 +6,6 @@
 
 namespace xstd {
   using namespace std;
-  std::function<void(int)> exit_func=exit;
-
 
   void __err_syserr(bool abort, const char *file, unsigned line, const char *fmt, ...);
   #define err_syserr(fmt,...) __err_syserr(false,__FILE__,__LINE__,fmt, __VA_ARGS__)
