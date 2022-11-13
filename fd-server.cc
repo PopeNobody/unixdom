@@ -9,12 +9,18 @@
 #include <time.h>
 #include <unistd.h>
 #include "fd-path.h"
+#include <stdarg.h>
 
 void err_remark(const char *msg){
   dprintf(2,"%s\n",msg);
 };
-void err_syserr(const char *msg){
-  dprintf(2,"%s\n",msg);
+void err_syserr(const char *fmt, ...){
+  va_list list;
+  va_start(list,fmt);
+  int res = vdprintf(2,fmt,list);
+  va_end(list);
+  if(res<0)
+    exit(1);
 };
 static
 void wyslij(int socket, int fd)  // send fd by socket
@@ -57,6 +63,23 @@ void wait_msg(int socket) {
 
   if (recvmsg(socket, &msg, 0) < 0)
     err_syserr("Failed to receive message\n");
+};
+int xopen(const char *filename, int flags, int mode=0){
+  int fd=open(filename,flags,mode);
+  if(fd<0)
+    err_syserr("failed to open '%s': %m\n",filename);
+  return fd;
+}
+struct sock_addr_t {
+  union {
+    struct sockaddr    addr;
+    struct sockaddr_in in_addr;
+    struct sockaddr_un un_addr;
+  };
+  socklen_t len;
+};
+int xbind(int sockfd, const sock_addr_t &addr) {
+
 };
 int main(int argc, char **argv)
 {

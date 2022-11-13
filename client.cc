@@ -16,17 +16,17 @@ int data_socket;
 struct sockaddr_un addr;
 int ret;
 
-void fork_and_dup() {
-    if(fork()){
-      //shutdown(data_socket,SHUT_RD);
-      dup2(data_socket,0);
-      close(data_socket);
-    } else {
-      //shutdown(data_socket,SHUT_WR);
-      dup2(data_socket,1);
-      close(data_socket);
-    };
-};
+//   void fork_and_dup() {
+//       if(fork()){
+//         //shutdown(data_socket,SHUT_RD);
+//         dup2(data_socket,0);
+//         close(data_socket);
+//       } else {
+//         //shutdown(data_socket,SHUT_WR);
+//         dup2(data_socket,1);
+//         close(data_socket);
+//       };
+//   };
 void bind_and_accept() {
   int ret = bind(connection_socket, (const struct sockaddr *) &addr,
       sizeof(struct sockaddr_un));
@@ -76,7 +76,8 @@ int main(int argc, char *argv[])
   open_socket();
   hook_up();
   unlink(SOCKET_NAME);
-  fork_and_dup();
+  //fork_and_dup();
+  dprintf(2,"data_socket: %d\n",data_socket);
 
   char buffer[2];
   while(read(0,buffer,1))
