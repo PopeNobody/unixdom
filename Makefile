@@ -46,11 +46,11 @@ $(LIST_II): %.cc.i: %.cc etc/cppflags
 	$(CXX)  -E $< -o $@  $(shell cat etc/cppflags)
 
 tmp/all_deps.mk: scr/gen_dep_list.pl $(LIST_II)
-	vi_perl scr/gen_dep_list.pl
+	vi-perl scr/gen_dep_list.pl
 	@grep . $@ /dev/null
 
 tmp/errno.list.cc: errno.cc.i scr/gen_errno_list.pl
-	vi_perl scr/gen_errno_list.pl
+	vi-perl scr/gen_errno_list.pl
 	@grep . $@ /dev/null
 
 etc/cxxflags etc/cppflags etc/ld_flags:

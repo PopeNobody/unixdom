@@ -1,15 +1,35 @@
 #include <errno.h>
 #include <string>
-#include <string.h>
 #include <iostream>
-#include <vector>
-#include <array>
-#include "errno.hh"
 
 using namespace std;
-using namespace err;
+
+struct errno_t {
+  struct data_t {
+    int code;
+    string name;
+    string emsg;
+    data_t(int code, const string &name)
+      : code(code),name(name)
+    {
+    }
+  };
+  data_t data;
+  errno_t(int code, const string &name)
+    : data(code,name)
+  {
+  };
+  string name() const {
+    return data.name;
+  };
+  string emsg() const {
+    if(!emsg.size())
+      const_cast<string&>(data.emsg)=strerror(code);
+    return data.emsg;
+  };
+};
+vector<errno_t> errnos;
 
 int main(int, char**){
-  auto &list=errno_t::errs();
   return 0;
 };
