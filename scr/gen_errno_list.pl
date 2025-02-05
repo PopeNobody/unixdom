@@ -1,9 +1,16 @@
 #!/usr/bin/perl
 
-use strict;
-use warnings;
 use autodie qw(:all);
+use common::sense;
 use Data::Dumper;
+use Nobody::Util;
+
+my $cwd;
+ddx( $cwd=path("$ENV{PWD}"));
+ddx( $cwd=$cwd->child("tmp") );
+ddx( $cwd->mkdir );
+#    my $path=path(".");
+#    ddx( $path )->child("tmp");
 
 @ARGV=qw(errno.cc.i);
 my $f="tmp/errno.list.cc";
